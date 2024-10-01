@@ -1,0 +1,21 @@
+{
+  "name": "scale-up-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "a server used to scale up the data extraction phase",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "server": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "body-parser": "^1.20.3",
+    "express": "^4.21.0",
+    "jsonlines": "^0.1.1",
+    "luxon": "^3.5.0",
+    "nodemon": "^3.1.7"
+  }
+}
