@@ -6,7 +6,7 @@ const router = express.Router();
 router.post('/fetch', async (req, res) => {
     const fullname  = req.body.name;
     try{
-        const data=await fetchCommentsPerIssue(fullname);
+        const data = await fetchCommentsPerIssue(fullname);
         res.send({ success: true , data:data});
     } catch (error) {
         console.log(`Error fetching comments: ${error}`);

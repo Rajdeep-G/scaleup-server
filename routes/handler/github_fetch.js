@@ -1,14 +1,21 @@
 import axios from 'axios';
 import { DateTime } from 'luxon';
+import fs from 'fs'; 
 
 
 
-const TOKEN = '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'
-if (!TOKEN) {
+const TOKENS = ['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', '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']
+if (!TOKENS) {
     console.error("GitHub API token is missing.");
     process.exit(1);
 }
-const headers = { Authorization: `token ${TOKEN}` };
+const headers = { Authorization: `token ${TOKENS[0]}` };
+
+const rotate_token = (headers) => {
+    const token = TOKENS.shift();
+    headers.Authorization = `token ${token}`;
+    TOKENS.push(token);
+}
 
 
 async function fetchCommentsPerIssue(fullname) {
@@ -22,15 +29,28 @@ async function fetchCommentsPerIssue(fullname) {
         for (let pageRagge = 1; pageRagge <= n; pageRagge++) {
             console.log(`Page: ${pageRagge}`);
 
-            const response = await axios.get(url, {
-                headers: headers,
-                params: { page: pageRagge, per_page: 100, state: 'closed' }
-            });
             
-            if (response.status === 403) {
-                console.log('403 Forbidden - Rate limit exceeded. Retrying after 15 minutes.');
-                await new Promise((resolve) => setTimeout(resolve, 15 * 60 * 1000));
-                return await fetchCommentsPerIssue(fullname); // Retry after waiting
+            try{
+                const response = await axios.get(url, {
+                    headers: headers,
+                    params: { page: pageRagge, per_page: 100, state: 'closed' }
+                });   
+                if (response.status === 403) {
+                    throw new Error('403 Forbidden - Rate limit exceeded.');
+                }     
+            } catch(error) {
+                if (error.response && error.response.status === 403) {
+                    console.log('403 Forbidden - Rate limit exceeded. Retrying with token rotation.');
+                    rotate_token(headers);
+                    const retryInterval = getRandomInterval(1, 5) * 60 * 1000; // Random interval between 1 to 5 minutes
+                    console.log(`Retrying after ${retryInterval / 60000} minutes.`);
+                    await new Promise((resolve) => setTimeout(resolve, retryInterval));
+                    pageRagge--;
+                    continue;
+                } else {
+                    console.error('An error occurred:', error.message);
+                    break;
+                }
             }
 
             const data = response.data;
