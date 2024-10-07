@@ -32,19 +32,32 @@ async function fetchComments(commentsUrl) {
 
   const totalPages = Math.ceil(commentsCount / 100);
   const allComments = {};
+  // const totalPages=100
 
 
   for (let page = 1; page <= totalPages; page++) {
-    console.log(`Fetching page ${page}`);
+    console.log(`Fetching page ${page} ${commentsUrl}`);
 
     try {
       const response = await axios.get(commentsUrl, {
         headers: headers,
-        params: { page: page, per_page: 100, state: 'closed' }
+        params: { page: page, per_page: 100 }
       });
       if (response.status === 403) {
         throw new Error('403 Forbidden - Rate limit exceeded.');
       }
+      const data = response.data;
+      console.log(data);
+      if (!data.length) break;
+      data.forEach(comment => {
+        const { id, body, user, created_at, reactions } = comment;
+        allComments[id] = {
+          message: decodeMsg(body),
+          user: user.login,
+          created_at,
+          reaction: reactions
+        };
+      });
     } catch (error) {
       if (error.response && error.response.status === 403) {
         console.log('403 Forbidden - Rate limit exceeded. Retrying with token rotation.');
@@ -59,19 +72,15 @@ async function fetchComments(commentsUrl) {
         break;
       }
     }
+    // const response = await axios.get(commentsUrl, {
+    //       headers: headers,
+    //       params: { page: page, per_page: 100 }
+    //     });
+    // const data = response.data;
+    // console.log(data);
+    // if (!data.length) break;
 
-    const data = response.data;
-    if (!data.length) break;
 
-    data.forEach(comment => {
-      const { id, body, user, created_at, reactions } = comment;
-      allComments[id] = {
-        message: decodeMsg(body),
-        user: user.login,
-        created_at,
-        reaction: reactions
-      };
-    });
   }
 
   return { issueBody, commentsCount, allComments };
