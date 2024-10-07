@@ -38,7 +38,7 @@ async function fetchComments(commentsUrl) {
     console.log(`Fetching page ${page}`);
 
     try {
-      const response = await axios.get(url, {
+      const response = await axios.get(commentsUrl, {
         headers: headers,
         params: { page: page, per_page: 100, state: 'closed' }
       });
@@ -52,7 +52,7 @@ async function fetchComments(commentsUrl) {
         const retryInterval = getRandomInterval(1, 5) * 60 * 1000; // Random interval between 1 to 5 minutes
         console.log(`Retrying after ${retryInterval / 60000} minutes.`);
         await new Promise((resolve) => setTimeout(resolve, retryInterval));
-        pageRagge--;
+        page--;
         continue;
       } else {
         console.error('An error occurred:', error.message);
