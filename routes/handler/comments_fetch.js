@@ -16,6 +16,11 @@ function decodeMsg(msg) {
     return "could not decode msg in utf-8";
   }
 }
+const rotate_token = (headers) => {
+  const token = TOKENS.shift();
+  headers.Authorization = `token ${token}`;
+  TOKENS.push(token);
+}
 
 async function fetchComments(commentsUrl) {
 
@@ -39,38 +44,39 @@ async function fetchComments(commentsUrl) {
       });
       if (response.status === 403) {
         throw new Error('403 Forbidden - Rate limit exceeded.');
-      } }catch (error) {
-        if (error.response && error.response.status === 403) {
-          console.log('403 Forbidden - Rate limit exceeded. Retrying with token rotation.');
-          rotate_token(headers);
-          const retryInterval = getRandomInterval(1, 5) * 60 * 1000; // Random interval between 1 to 5 minutes
-          console.log(`Retrying after ${retryInterval / 60000} minutes.`);
-          await new Promise((resolve) => setTimeout(resolve, retryInterval));
-          pageRagge--;
-          continue;
-        } else {
-          console.error('An error occurred:', error.message);
-          break;
-        }
       }
-
-      const data = response.data;
-      if (!data.length) break;
-
-      data.forEach(comment => {
-        const { id, body, user, created_at, reactions } = comment;
-        allComments[id] = {
-          message: decodeMsg(body),
-          user: user.login,
-          created_at,
-          reaction: reactions
-        };
-      });
+    } catch (error) {
+      if (error.response && error.response.status === 403) {
+        console.log('403 Forbidden - Rate limit exceeded. Retrying with token rotation.');
+        rotate_token(headers);
+        const retryInterval = getRandomInterval(1, 5) * 60 * 1000; // Random interval between 1 to 5 minutes
+        console.log(`Retrying after ${retryInterval / 60000} minutes.`);
+        await new Promise((resolve) => setTimeout(resolve, retryInterval));
+        pageRagge--;
+        continue;
+      } else {
+        console.error('An error occurred:', error.message);
+        break;
+      }
     }
+
+    const data = response.data;
+    if (!data.length) break;
+
+    data.forEach(comment => {
+      const { id, body, user, created_at, reactions } = comment;
+      allComments[id] = {
+        message: decodeMsg(body),
+        user: user.login,
+        created_at,
+        reaction: reactions
+      };
+    });
+  }
 
   return { issueBody, commentsCount, allComments };
 
-  }
+}
 
 
-  export { fetchComments };
+export { fetchComments };
