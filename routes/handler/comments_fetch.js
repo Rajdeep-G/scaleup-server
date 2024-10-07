@@ -39,7 +39,7 @@ async function fetchComments(commentsUrl) {
       });
       if (response.status === 403) {
         throw new Error('403 Forbidden - Rate limit exceeded.');
-      } catch (error) {
+      } }catch (error) {
         if (error.response && error.response.status === 403) {
           console.log('403 Forbidden - Rate limit exceeded. Retrying with token rotation.');
           rotate_token(headers);
