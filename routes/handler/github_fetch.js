@@ -4,7 +4,7 @@ import fs from 'fs';
 
 
 
-const TOKENS = ['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', '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']
+
 if (!TOKENS) {
     console.error("GitHub API token is missing.");
     process.exit(1);
