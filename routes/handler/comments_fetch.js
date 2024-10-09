@@ -1,6 +1,9 @@
 import axios from 'axios';
+import dotenv from 'dotenv';
 
-const TOKENS = ['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', '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']
+dotenv.config();
+const TOKENS=[process.env.GITHUB_API_TOKEN1,process.env.GITHUB_API_TOKEN2]
+
 if (!TOKENS) {
   console.error("GitHub API token is missing.");
   process.exit(1);
